@@ -15,7 +15,7 @@ CSV de transacciones y Excel de productos.
    pip install -r requirements.txt
 
 2. Ejecutar:
-   python adquisicion.py
+   python adquisicion_normalizacion_pandas.py
 
 ## Proceso realizado
 - Carga de CSV y Excel.
