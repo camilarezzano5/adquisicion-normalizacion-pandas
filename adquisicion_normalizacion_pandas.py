@@ -2,11 +2,11 @@
 import pandas as pd
 from pathlib import Path
 
-# 1. CONFIGURACION DE RUTAS
+# PASO 1: CONFIGURACION
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# 2. ADQUISICION DE DATOS
+# PASO 2: ADQUISICION DE DATOS
 
 transacciones = pd.read_csv(
     BASE_DIR / "datos" / "transacciones.csv"
@@ -17,11 +17,10 @@ productos = pd.read_excel(
     engine="openpyxl"
 )
 
-print("Archivos cargados correctamente.")
+print("Datos cargados correctamente.")
 
-# 3. LIMPIEZA Y NORMALIZACION
+# PASO 3: LIMPIEZA Y NORMALIZACION
 
-# Convertir identificadores y valores numericos
 transacciones["id_producto"] = pd.to_numeric(
     transacciones["id_producto"], errors="coerce"
 )
@@ -38,14 +37,14 @@ productos["precio_unitario"] = pd.to_numeric(
     productos["precio_unitario"], errors="coerce"
 )
 
-# Convertir fechas
 transacciones["fecha"] = pd.to_datetime(
     transacciones["fecha"],
     format="%d/%m/%Y",
     errors="coerce"
 )
 
-# Eliminar registros con datos criticos faltantes
+# Eliminar valores nulos en campos criticos
+
 transacciones = transacciones.dropna(
     subset=["id_producto", "cantidad", "fecha"]
 )
@@ -55,6 +54,7 @@ productos = productos.dropna(
 )
 
 # Convertir identificadores a enteros
+
 transacciones["id_producto"] = (
     transacciones["id_producto"].astype(int)
 )
@@ -63,14 +63,15 @@ productos["id_producto"] = (
     productos["id_producto"].astype(int)
 )
 
-# Eliminar productos duplicados
+# Eliminar duplicados
+
 productos = productos.drop_duplicates(
     subset=["id_producto"]
 )
 
-print("Limpieza y normalizacion completadas.")
+print("Limpieza completada.")
 
-# 4. INTEGRACION DE DATOS (MERGE)
+# PASO 4: INTEGRACION DE DATOS
 
 ventas = pd.merge(
     transacciones,
@@ -80,28 +81,32 @@ ventas = pd.merge(
     validate="many_to_one"
 )
 
-print("Integracion de datos completada.")
+print("Merge realizado correctamente.")
 
-# 5. CREACION DE LA COLUMNA CALCULADA
+# PASO 5: COLUMNA CALCULADA
 
 ventas["total_venta"] = (
     ventas["cantidad"] * ventas["precio_unitario"]
 )
 
-# 6. VERIFICACION DEL DATASET FINAL
+# PASO 6: VERIFICACION
 
-print("\nDataset final:")
+print("\nPrimeras filas del dataset:")
 print(ventas.head())
 
-print("\nDimensiones:", ventas.shape)
+print("\nDimensiones:")
+print(ventas.shape)
 
 print("\nValores nulos:")
 print(ventas.isnull().sum())
 
+print("\nTipos de datos:")
+print(ventas.dtypes)
+
 print("\nTotal general de ventas:")
 print(ventas["total_venta"].sum())
 
-# 7. EXPORTACION A PARQUET
+# PASO 7: EXPORTACION A PARQUET
 
 ruta_salida = BASE_DIR / "ventas_final.parquet"
 
@@ -111,8 +116,9 @@ ventas.to_parquet(
     engine="pyarrow"
 )
 
-# Comprobar el archivo generado
-ventas_verificacion = pd.read_parquet(ruta_salida)
+# Comprobar exportacion
+
+verificacion = pd.read_parquet(ruta_salida)
 
 print("\nArchivo Parquet generado correctamente.")
-print("Registros exportados:", len(ventas_verificacion))
+print("Registros exportados:", len(verificacion))
